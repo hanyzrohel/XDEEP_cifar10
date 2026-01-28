@@ -60,6 +60,11 @@ model = SimpleCNN(num_classes=10).to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
+scheduler = optim.lr_scheduler.StepLR(
+    optimizer,
+    step_size=10,
+    gamma=0.1
+)
 
 # ------------------
 # Training loop
@@ -123,3 +128,4 @@ for epoch in range(num_epochs):
         f"Train Loss: {epoch_loss:.4f} | Train Acc: {accuracy:.2f}% | "
         f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%"
     )
+    scheduler.step()
