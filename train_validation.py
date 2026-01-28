@@ -69,7 +69,9 @@ scheduler = optim.lr_scheduler.StepLR(
 # ------------------
 # Training loop
 # ------------------
+
 num_epochs = 20
+best_val_acc = 0.0
 
 for epoch in range(num_epochs):
     model.train()
@@ -128,4 +130,7 @@ for epoch in range(num_epochs):
         f"Train Loss: {epoch_loss:.4f} | Train Acc: {accuracy:.2f}% | "
         f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%"
     )
+    if val_acc > best_val_acc:
+        best_val_acc = val_acc
+        torch.save(model.state_dict(), "best_model.pth")
     scheduler.step()
