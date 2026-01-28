@@ -1,0 +1,109 @@
+CIFAR-10 CNN Training Project
+
+Requirements / What Was Needed at the Beginning
+
+Before starting the project, the following were required:
+	•	Python 3.9+
+	•	A working virtual environment (venv)
+	•	Installed Python packages:
+	•	torch
+	•	torchvision
+	•	macOS (important for DataLoader behavior)
+	•	CIFAR-10 dataset (downloaded automatically or stored locally)
+	•	A custom CNN model implemented in mycnn.py (SimpleCNN)
+python3 -m venv venv
+source venv/bin/activate
+pip install torch torchvision
+
+Project Goal
+
+The goal of this project is to:
+	•	Train a Convolutional Neural Network (CNN) on the CIFAR-10 dataset
+	•	Correctly handle training and validation data
+	•	Follow PyTorch best practices
+	•	Avoid common macOS multiprocessing issues
+
+⸻
+
+Dataset Handling
+	•	Dataset used: CIFAR-10
+	•	Total images: 60,000
+	•	50,000 training images
+	•	10,000 test images
+
+Data Split Strategy
+	•	The original training set is split into:
+	•	90% training
+	•	10% validation
+	•	The test set is kept separate and untouched for final evaluation
+
+Implementation uses:
+	•	torch.utils.data.random_split
+	•	Separate DataLoader instances for train and validation
+
+⸻
+
+Data Loading Details (macOS Fix)
+	•	On macOS, PyTorch uses spawn instead of fork
+	•	This causes crashes when using multiprocessing without protection
+	•	Solution applied:
+	•	num_workers = 0 in all DataLoaders
+	•	This ensures stable execution during development
+
+⸻
+
+Model
+	•	Custom CNN defined in mycnn.py
+	•	Model outputs 10 classes (CIFAR-10)
+	•	Moved to available device:
+	•	CUDA if available
+	•	CPU otherwise
+
+⸻
+
+Training Setup
+	•	Loss function: CrossEntropyLoss
+	•	Optimizer: Adam
+	•	Learning rate: 1e-3
+	•	Number of epochs: 5
+	•	Input normalization applied to CIFAR-10 images
+
+⸻
+
+Training & Validation Loop
+
+For each epoch:
+	•	Training phase
+	•	model.train()
+	•	Gradients enabled
+	•	Weights updated
+	•	Validation phase
+	•	model.eval()
+	•	torch.no_grad()
+	•	No weight updates
+	•	Metrics computed:
+	•	Training loss
+	•	Training accuracy
+	•	Validation loss
+	•	Validation accuracy
+
+All metrics are printed after each epoch.
+
+⸻
+
+Current Project State
+	•	✅ Training loop implemented
+	•	✅ Validation loop implemented
+	•	✅ Proper dataset split
+	•	✅ macOS multiprocessing issue resolved
+	•	⏳ Test set evaluation (can be added next)
+	•	⏳ Early stopping / checkpoints (optional extensions)
+
+⸻
+
+Possible Next Steps
+	•	Add final test evaluation
+	•	Implement early stopping
+	•	Save best-performing model
+	•	Add learning rate scheduler
+	•	Plot training vs validation curves
