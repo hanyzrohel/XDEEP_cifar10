@@ -1,109 +1,170 @@
-CIFAR-10 CNN Training Project
+# CIFAR-10 Image Classification with PyTorch
 
-Requirements / What Was Needed at the Beginning
+This repository contains a small, educational deep learning project created for the university course **"Úvod do deep learningu"**.
 
-Before starting the project, the following were required:
-	•	Python 3.9+
-	•	A working virtual environment (venv)
-	•	Installed Python packages:
-	•	torch
-	•	torchvision
-	•	macOS (important for DataLoader behavior)
-	•	CIFAR-10 dataset (downloaded automatically or stored locally)
-	•	A custom CNN model implemented in mycnn.py (SimpleCNN)
-python3 -m venv venv
-source venv/bin/activate
-pip install torch torchvision
+The goal of the project is not to achieve state-of-the-art performance, but to build a **correct, understandable, and reproducible** image classification pipeline using PyTorch.
 
-Project Goal
+---
 
-The goal of this project is to:
-	•	Train a Convolutional Neural Network (CNN) on the CIFAR-10 dataset
-	•	Correctly handle training and validation data
-	•	Follow PyTorch best practices
-	•	Avoid common macOS multiprocessing issues
+## Project Goals
 
-⸻
+- Train and evaluate image classification models on the CIFAR-10 dataset
+- Understand the full deep learning workflow:
+  - data loading
+  - training and validation
+  - test evaluation
+  - error analysis
+- Compare a **custom CNN** with a **standard deep learning architecture (ResNet-18)**
+- Be able to clearly explain every part of the code and results
 
-Dataset Handling
-	•	Dataset used: CIFAR-10
-	•	Total images: 60,000
-	•	50,000 training images
-	•	10,000 test images
+---
 
-Data Split Strategy
-	•	The original training set is split into:
-	•	90% training
-	•	10% validation
-	•	The test set is kept separate and untouched for final evaluation
+## Dataset
+
+- **Dataset:** CIFAR-10
+- **Number of classes:** 10
+- **Image size:** 32 × 32 RGB
+- **Total images:** 60,000
+  - 50,000 training images
+  - 10,000 test images
+
+### Data Split
+
+The original training set is split into:
+
+- 90% training
+- 10% validation
+
+The test set is kept **completely separate** and is only used for final evaluation.
 
 Implementation uses:
-	•	torch.utils.data.random_split
-	•	Separate DataLoader instances for train and validation
 
-⸻
+- `torchvision.datasets.CIFAR10`
+- `torch.utils.data.random_split`
+- Separate `DataLoader` instances for train, validation, and test
 
-Data Loading Details (macOS Fix)
-	•	On macOS, PyTorch uses spawn instead of fork
-	•	This causes crashes when using multiprocessing without protection
-	•	Solution applied:
-	•	num_workers = 0 in all DataLoaders
-	•	This ensures stable execution during development
+---
 
-⸻
+## Environment Setup
 
-Model
-	•	Custom CNN defined in mycnn.py
-	•	Model outputs 10 classes (CIFAR-10)
-	•	Moved to available device:
-	•	CUDA if available
-	•	CPU otherwise
+### Requirements
 
-⸻
+- Python 3.9+
+- macOS (project developed and tested on macOS)
+- Virtual environment (`venv`)
 
-Training Setup
-	•	Loss function: CrossEntropyLoss
-	•	Optimizer: Adam
-	•	Learning rate: 1e-3
-	•	Number of epochs: 5
-	•	Input normalization applied to CIFAR-10 images
+### Installation
 
-⸻
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install torch torchvision matplotlib
+```
 
-Training & Validation Loop
+---
 
-For each epoch:
-	•	Training phase
-	•	model.train()
-	•	Gradients enabled
-	•	Weights updated
-	•	Validation phase
-	•	model.eval()
-	•	torch.no_grad()
-	•	No weight updates
-	•	Metrics computed:
-	•	Training loss
-	•	Training accuracy
-	•	Validation loss
-	•	Validation accuracy
+## Data Loading Notes (macOS)
 
-All metrics are printed after each epoch.
+On macOS, PyTorch uses **spawn** instead of **fork** for multiprocessing. This can cause crashes when using multiple workers in `DataLoader`.
 
-⸻
+**Solution used in this project:**
 
-Current Project State
-	•	✅ Training loop implemented
-	•	✅ Validation loop implemented
-	•	✅ Proper dataset split
-	•	✅ macOS multiprocessing issue resolved
-	•	⏳ Test set evaluation (can be added next)
-	•	⏳ Early stopping / checkpoints (optional extensions)
+- `num_workers = 0` for all `DataLoader` instances
 
-⸻
+This ensures stable and reproducible execution during development.
 
-Possible Next Steps
-	•	Add final test evaluation
-	•	Implement early stopping
-	•	Save best-performing model
-	•	Add learning rate scheduler
-	•	Plot training vs validation curves
+---
+
+## Models
+
+### Model A — Custom CNN
+
+- Implemented in `mycnn.py`
+- Simple and easy-to-understand architecture
+- Built from scratch using basic PyTorch layers
+- Designed for educational purposes
+
+### Model B — ResNet-18
+
+- Imported from `torchvision.models`
+- Trained **from scratch** (no pretrained weights)
+- Final classification layer modified for 10 CIFAR-10 classes
+- Used as a reference architecture for comparison
+
+---
+
+## Training Setup
+
+- Loss function: `CrossEntropyLoss`
+- Optimizer: Adam
+- Learning rate: `1e-3`
+- Learning-rate scheduler: `StepLR`
+- Number of epochs: 20
+- Input normalization applied to all images
+
+Both models are trained using the **same training and validation setup** to ensure a fair comparison.
+
+---
+
+## Evaluation
+
+For both models, the following evaluation is performed:
+
+- Validation during training
+- Final evaluation on the test set
+- **Top-1 accuracy**
+- **Top-3 accuracy**
+- Confusion matrix
+- Visualization of misclassified test images
+
+### Typical Results
+
+- **Custom CNN:**
+  - Top-1 accuracy ≈ 73–75%
+  - Top-3 accuracy ≈ 93–94%
+
+- **ResNet-18:**
+  - Top-1 accuracy ≈ 78–80%
+  - Top-3 accuracy ≈ 94–96%
+
+ResNet-18 achieves higher accuracy, but also shows stronger overfitting, which highlights the importance of regularization and model capacity control.
+
+---
+
+## Error Analysis
+
+Several misclassified test images are visualized for each model.
+
+Observed error patterns:
+
+- Confusions between visually similar classes (e.g. cat vs dog, automobile vs truck)
+- Low image resolution (32×32 pixels)
+- Background dominance over object features
+
+These errors are expected and help explain model limitations.
+
+---
+
+## Project Structure
+
+```
+XDEEP_projekt/
+├── mycnn.py               # Custom CNN implementation
+├── train_validation.py    # Training & evaluation of custom CNN
+├── train_resnet.py        # Training & evaluation of ResNet-18
+├── data/                  # CIFAR-10 dataset (not tracked by git)
+├── venv/                  # Python virtual environment (not tracked)
+├── .gitignore
+└── readme
+```
+train.py / main.py 		# were used during early experimentation and are not part of the final pipeline
+---
+
+## Conclusions
+
+- A complete deep learning pipeline was implemented using PyTorch
+- A custom CNN and a standard ResNet-18 architecture were successfully trained and evaluated
+- Deeper models achieve better performance but require careful regularization
+- Error analysis provides important insights beyond accuracy numbers
+
+This project serves as a clear, learning-focused introduction to practical deep learning with PyTorch.
