@@ -133,3 +133,63 @@ for epoch in range(num_epochs):
         torch.save(model.state_dict(), "best_resnet_model.pth")
 
     scheduler.step()
+
+# ==================
+# Test evaluation
+# ==================
+
+# Load best ResNet model
+model.load_state_dict(torch.load("best_resnet_model.pth", map_location=device))
+model.eval()
+
+# Test dataset and loader
+test_dataset = datasets.CIFAR10(
+    root="./data",
+    train=False,
+    download=False,
+    transform=transform
+)
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=64,
+    shuffle=False,
+    num_workers=0
+)
+
+correct_top1 = 0
+correct_top3 = 0
+total = 0
+num_classes = 10
+confusion_matrix = torch.zeros(num_classes, num_classes, dtype=torch.int64)
+
+with torch.no_grad():
+    for images, labels in test_loader:
+        images = images.to(device)
+        labels = labels.to(device)
+
+        outputs = model(images)
+
+        # Top-1 accuracy
+        _, predicted = outputs.max(1)
+        correct_top1 += predicted.eq(labels).sum().item()
+
+        # Top-3 accuracy
+        _, top3 = outputs.topk(3, dim=1)
+        correct_top3 += top3.eq(labels.view(-1, 1)).sum().item()
+
+        # Confusion matrix
+        for t, p in zip(labels.view(-1), predicted.view(-1)):
+            confusion_matrix[t.long(), p.long()] += 1
+
+        total += labels.size(0)
+
+
+top1_acc = 100. * correct_top1 / total
+top3_acc = 100. * correct_top3 / total
+
+print("\nResNet-18 Test set evaluation")
+print(f"Top-1 Accuracy: {top1_acc:.2f}%")
+print(f"Top-3 Accuracy: {top3_acc:.2f}%")
+print("\nConfusion Matrix (rows = true labels, columns = predicted labels):")
+print(confusion_matrix)
