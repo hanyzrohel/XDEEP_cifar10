@@ -5,6 +5,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from mycnn import SimpleCNN
 from torch.utils.data import random_split
+import matplotlib.pyplot as plt
 
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -164,6 +165,11 @@ correct_top3 = 0
 num_classes = 10
 confusion_matrix = torch.zeros(num_classes, num_classes, dtype=torch.int64)
 
+misclassified_images = []
+misclassified_labels = []
+misclassified_preds = []
+MAX_MISCLASSIFIED = 5
+
 with torch.no_grad():
     for images, labels in test_loader:
         images = images.to(device)
@@ -182,6 +188,12 @@ with torch.no_grad():
         for t, p in zip(labels.view(-1), predicted.view(-1)):
             confusion_matrix[t.long(), p.long()] += 1
 
+        for img, true_label, pred_label in zip(images, labels, predicted):
+            if true_label != pred_label and len(misclassified_images) < MAX_MISCLASSIFIED:
+                misclassified_images.append(img.cpu())
+                misclassified_labels.append(true_label.cpu())
+                misclassified_preds.append(pred_label.cpu())
+
         total += labels.size(0)
 
 
@@ -193,3 +205,25 @@ print(f"Top-1 Accuracy: {top1_acc:.2f}%")
 print(f"Top-3 Accuracy: {top3_acc:.2f}%")
 print("\nConfusion Matrix (rows = true labels, columns = predicted labels):")
 print(confusion_matrix)
+
+# ------------------
+# Visualize misclassified examples
+# ------------------
+classes = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+           'dog', 'frog', 'horse', 'ship', 'truck']
+
+print("\nMisclassified examples:")
+
+plt.figure(figsize=(10, 4))
+for i in range(len(misclassified_images)):
+    img = misclassified_images[i]
+    img = img * 0.5 + 0.5  # unnormalize
+    img = img.permute(1, 2, 0)
+
+    plt.subplot(1, MAX_MISCLASSIFIED, i + 1)
+    plt.imshow(img)
+    plt.title(f"True: {classes[misclassified_labels[i]]}\nPred: {classes[misclassified_preds[i]]}")
+    plt.axis('off')
+
+plt.tight_layout()
+plt.show()
